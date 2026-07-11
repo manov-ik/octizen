@@ -14,7 +14,11 @@ class Database:
 
     @contextmanager
     def get_connection(self):
-        conn = sqlite3.connect(self.db_path)
+        # check_same_thread=False is required because gpiozero's when_pressed
+        # callback fires on a background thread. Without this, any SQLite write
+        # from the physical button press raises a threading error and is silently
+        # lost — which is why button presses were not appearing on the dashboard.
+        conn = sqlite3.connect(self.db_path, check_same_thread=False)
         # Enable dictionary-like access to rows
         conn.row_factory = sqlite3.Row
         try:

@@ -13,9 +13,12 @@ class Octizen:
         logger.info("Octizen is ready ")
         
         # Start uvicorn server serving the FastAPI app
+        # NOTE: reload=False is intentional — Uvicorn's hot-reload forks child
+        # processes that would re-register the GPIO button listener on every file
+        # change, causing log spam and duplicate hardware events.
         uvicorn.run(
             "api.server:app",
             host=self.config.HOST,
             port=self.config.PORT,
-            reload=self.config.DEBUG,
+            reload=False,
         )

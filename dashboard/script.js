@@ -236,15 +236,15 @@ async function deleteMemory(memoryId) {
     }
 }
 
-// Setup Event Listeners
-document.getElementById('add-dummy-memory-btn').addEventListener('click', createDummyMemory);
-document.getElementById('add-dummy-log-btn').addEventListener('click', createDummyLog);
-
 // Initialize application
 document.addEventListener('DOMContentLoaded', () => {
-    // Initial fetch
+    // Wire up sidebar action buttons
+    document.getElementById('add-dummy-memory-btn').addEventListener('click', createDummyMemory);
+    document.getElementById('add-dummy-log-btn').addEventListener('click', createDummyLog);
+
+    // Initial fetch on page load
     updateDashboard();
-    
-    // Auto-refresh interval of 1000 milliseconds (every second)
+
+    // Auto-refresh: poll every 1 second — picks up GPIO button presses automatically
     setInterval(updateDashboard, 1000);
 });
