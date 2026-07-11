@@ -14,20 +14,20 @@ class Database:
 
     @contextmanager
     def get_connection(self):
-        # check_same_thread=False is required because gpiozero's when_pressed
-        # callback fires on a background thread. Without this, any SQLite write
-        # from the physical button press raises a threading error and is silently
-        # lost — which is why button presses were not appearing on the dashboard.
         conn = sqlite3.connect(self.db_path, check_same_thread=False)
-        # Enable dictionary-like access to rows
         conn.row_factory = sqlite3.Row
+        # WAL mode: readers never block writers, writers never block readers.
+        # Essential when the button worker thread writes while Uvicorn reads.
+        conn.execute("PRAGMA journal_mode=WAL")
+        # If the DB is momentarily locked, wait up to 3 s before giving up.
+        conn.execute("PRAGMA busy_timeout=3000")
         try:
             yield conn
             conn.commit()
         except Exception as e:
             conn.rollback()
-            logger.error(f"Database error: {e}")
-            raise e
+            logger.error(f"Database error: {e}", exc_info=True)
+            raise
         finally:
             conn.close()
 

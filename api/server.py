@@ -8,13 +8,11 @@ from storage.database import db
 from api.memory import router as memory_router
 from api.logs import router as logs_router
 from memory.manager import memory_manager
-from devices.button import setup_button
+from devices.button import setup_button, trigger_press
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Initialize database tables and seed dummy data on app startup
     db.init_db()
-    # Setup physical button listener on GPIO17
     setup_button(memory_manager)
     yield
 
@@ -44,3 +42,13 @@ def read_style():
 @app.get("/script.js")
 def read_script():
     return FileResponse(os.path.join("dashboard", "script.js"))
+
+@app.post("/api/button-press")
+def manual_button_press():
+    """Simulate a physical button press via the API.
+    Enqueues through the same worker thread as the real GPIO event.
+    Use this to verify the data flow without touching the hardware:
+      curl -X POST http://localhost:8000/api/button-press
+    """
+    trigger_press()
+    return {"success": True, "message": "Button press event queued — check the dashboard."}
