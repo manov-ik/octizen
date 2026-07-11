@@ -24,3 +24,7 @@ venv/
 
 # Mypy
 .mypy_cache/
+
+
+#apple 
+.DS_Store
