@@ -1,11 +1,11 @@
-from fastapi import FastAPI
+from core.app import Octizen
 
-app = FastAPI(title="Octizen")
 
-@app.get("/")
-def root():
-    return {
-        "name": "Octizen",
-        "version": "0.1.0",
-        "status": "Running"
-    }
+def main():
+    octizen = Octizen()
+    octizen.start()
+
+
+if __name__ == "__main__":
+    main()
+
