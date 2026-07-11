@@ -10,11 +10,8 @@ class Octizen:
     def start(self):
         logger.info("Starting Octizen...")
         logger.info(f"Version: {self.config.VERSION}")
-        
-        # Initialize physical button listener
-        from devices.button import physical_button
-        
         logger.info("Octizen is ready ")
+        
         # Start uvicorn server serving the FastAPI app
         uvicorn.run(
             "api.server:app",

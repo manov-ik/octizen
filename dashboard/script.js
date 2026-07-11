@@ -234,26 +234,11 @@ async function deleteMemory(memoryId) {
     } catch (e) {
         console.error("Error calling DELETE /api/memories:", e);
     }
-// Simulate a physical button press by calling the debug endpoint
-async function simulateButtonPress() {
-    try {
-        const response = await fetch('/api/debug/press-button', {
-            method: 'POST'
-        });
-        if (response.ok) {
-            updateDashboard();
-        } else {
-            console.error("Failed to simulate button press");
-        }
-    } catch (e) {
-        console.error("Error simulating button press:", e);
-    }
 }
 
 // Setup Event Listeners
 document.getElementById('add-dummy-memory-btn').addEventListener('click', createDummyMemory);
 document.getElementById('add-dummy-log-btn').addEventListener('click', createDummyLog);
-document.getElementById('simulate-button-btn').addEventListener('click', simulateButtonPress);
 
 // Initialize application
 document.addEventListener('DOMContentLoaded', () => {

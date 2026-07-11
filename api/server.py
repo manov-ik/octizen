@@ -7,14 +7,15 @@ from fastapi.responses import FileResponse
 from storage.database import db
 from api.memory import router as memory_router
 from api.logs import router as logs_router
+from memory.manager import memory_manager
+from devices.button import setup_button
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Initialize database tables and seed dummy data on app startup
     db.init_db()
-    # Initialize physical button listener
-    from devices.button import physical_button
-    app.state.physical_button = physical_button
+    # Setup physical button listener on GPIO17
+    setup_button(memory_manager)
     yield
 
 app = FastAPI(
@@ -22,11 +23,6 @@ app = FastAPI(
     description="Sprint 1 - Memory Engine v0.1",
     lifespan=lifespan
 )
-
-@app.post("/api/debug/press-button")
-def debug_press_button():
-    from devices.button import physical_button
-    return physical_button.trigger_press()
 
 # Register routers
 app.include_router(memory_router)
