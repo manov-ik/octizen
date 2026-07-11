@@ -12,6 +12,9 @@ from api.logs import router as logs_router
 async def lifespan(app: FastAPI):
     # Initialize database tables and seed dummy data on app startup
     db.init_db()
+    # Initialize physical button listener
+    from devices.button import physical_button
+    app.state.physical_button = physical_button
     yield
 
 app = FastAPI(
@@ -19,6 +22,11 @@ app = FastAPI(
     description="Sprint 1 - Memory Engine v0.1",
     lifespan=lifespan
 )
+
+@app.post("/api/debug/press-button")
+def debug_press_button():
+    from devices.button import physical_button
+    return physical_button.trigger_press()
 
 # Register routers
 app.include_router(memory_router)

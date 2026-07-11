@@ -1,30 +1,30 @@
 :root {
-    /* Frappe Minimal Light Palette */
-    --bg-app: #f4f5f6;
-    --bg-sidebar: #fafbfc;
-    --bg-card: #ffffff;
-    --bg-card-hover: #ffffff;
+    /* Simple Dark Theme Palette */
+    --bg-app: #090d16;
+    --bg-sidebar: #0f172a;
+    --bg-card: #1e293b;
+    --bg-card-hover: #243249;
     
-    --border-color: #e2e8f0;
-    --border-hover: #cbd5e1;
+    --border-color: #334155;
+    --border-hover: #475569;
     
     /* Text Colors */
-    --text-title: #1f2937;
-    --text-body: #4b5563;
-    --text-muted: #9ca3af;
+    --text-title: #f8fafc;
+    --text-body: #cbd5e1;
+    --text-muted: #64748b;
     
     /* Brand Accent */
-    --primary: #1b65db;
-    --primary-hover: #1552b7;
-    --secondary: #6b7280;
-    --secondary-hover: #4b5563;
+    --primary: #3b82f6;
+    --primary-hover: #2563eb;
+    --secondary: #475569;
+    --secondary-hover: #334155;
     
-    /* Status Colors (Subtle & Flat) */
-    --success: #0d9488;
-    --info: #0284c7;
-    --warning: #d97706;
-    --error: #dc2626;
-    --debug: #7c3aed;
+    /* Status & Type Colors */
+    --success: #10b981;
+    --info: #38bdf8;
+    --warning: #f59e0b;
+    --error: #ef4444;
+    --debug: #c084fc;
     
     /* Fonts */
     --font-heading: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -32,8 +32,8 @@
     --font-mono: 'Fira Code', monospace;
     
     /* Shadows */
-    --shadow-flat: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.03);
-    --shadow-hover: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    --shadow-flat: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+    --shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.15);
 }
 
 /* Base Styles */
@@ -79,10 +79,6 @@ html, body {
     gap: 0.5rem;
 }
 
-.logo-icon {
-    font-size: 1.8rem;
-}
-
 .logo-text {
     font-family: var(--font-heading);
     font-size: 1.4rem;
@@ -122,14 +118,15 @@ html, body {
 }
 
 .nav-item:hover {
-    background: #f3f4f6;
+    background: rgba(255, 255, 255, 0.05);
     color: var(--text-title);
 }
 
 .nav-item.active {
-    background: #e0e7ff;
-    color: #4338ca;
+    background: rgba(59, 130, 246, 0.15);
+    color: #93c5fd;
     font-weight: 600;
+    border: 1px solid rgba(59, 130, 246, 0.3);
 }
 
 .nav-icon {
@@ -168,7 +165,7 @@ html, body {
     padding: 0.6rem 0.8rem;
     border-radius: 6px;
     font-family: var(--font-heading);
-    font-weight: 500;
+    font-weight: 600;
     font-size: 0.85rem;
     cursor: pointer;
     transition: all 0.15s ease;
@@ -188,14 +185,13 @@ html, body {
 }
 
 .btn-secondary {
-    background: #ffffff;
+    background: #1e293b;
     color: var(--text-title);
     border: 1px solid var(--border-color);
-    box-shadow: var(--shadow-flat);
 }
 
 .btn-secondary:hover {
-    background: #f9fafb;
+    background: #334155;
     border-color: var(--border-hover);
 }
 
@@ -310,7 +306,7 @@ html, body {
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    background: var(--bg-card);
+    background: #0f172a;
     border-radius: 8px;
     border: 1px solid var(--border-color);
     box-shadow: var(--shadow-flat);
@@ -322,7 +318,7 @@ html, body {
     align-items: center;
     padding: 1rem 1.25rem;
     border-bottom: 1px solid var(--border-color);
-    background: #fafafa;
+    background: #1e293b;
 }
 
 .section-header h3 {
@@ -353,12 +349,12 @@ html, body {
 }
 
 ::-webkit-scrollbar-thumb {
-    background: #e2e8f0;
+    background: #334155;
     border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: #cbd5e1;
+    background: #475569;
 }
 
 /* Badges */
@@ -371,12 +367,12 @@ html, body {
     letter-spacing: 0.03em;
 }
 
-.badge-info { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
-.badge-warning { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
+.badge-info { background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.25); }
+.badge-warning { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.25); }
 
 /* Memory Card */
 .memory-card {
-    background: #ffffff;
+    background: var(--bg-card);
     border: 1px solid var(--border-color);
     border-radius: 6px;
     padding: 1rem;
@@ -387,6 +383,7 @@ html, body {
 
 .memory-card:hover {
     border-color: var(--border-hover);
+    background: var(--bg-card-hover);
     box-shadow: var(--shadow-hover);
 }
 
@@ -416,18 +413,21 @@ html, body {
     flex-shrink: 0;
 }
 
-/* Subtle accent border-left for cards */
+/* Subtle left border accents for cards */
 .memory-card.type-idea { border-left: 3px solid var(--warning); }
-.memory-card.type-idea .memory-type-badge { background: #fef3c7; color: #b45309; }
+.memory-card.type-idea .memory-type-badge { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
 
 .memory-card.type-bug { border-left: 3px solid var(--error); }
-.memory-card.type-bug .memory-type-badge { background: #fee2e2; color: #b91c1c; }
+.memory-card.type-bug .memory-type-badge { background: rgba(239, 68, 68, 0.15); color: #f87171; }
 
 .memory-card.type-log { border-left: 3px solid var(--info); }
-.memory-card.type-log .memory-type-badge { background: #e0f2fe; color: #0369a1; }
+.memory-card.type-log .memory-type-badge { background: rgba(56, 189, 248, 0.15); color: #38bdf8; }
+
+.memory-card.type-button { border-left: 3px solid var(--success); }
+.memory-card.type-button .memory-type-badge { background: rgba(16, 185, 129, 0.15); color: #34d399; }
 
 .memory-card.type-general { border-left: 3px solid var(--secondary); }
-.memory-card.type-general .memory-type-badge { background: #f3f4f6; color: #4b5563; }
+.memory-card.type-general .memory-type-badge { background: rgba(71, 85, 105, 0.15); color: #cbd5e1; }
 
 .memory-content {
     font-size: 0.85rem;
@@ -442,7 +442,7 @@ html, body {
     align-items: center;
     font-size: 0.7rem;
     color: var(--text-muted);
-    border-top: 1px solid #f1f5f9;
+    border-top: 1px solid #334155;
     padding-top: 0.5rem;
 }
 
@@ -473,7 +473,7 @@ html, body {
 .delete-btn:hover {
     color: var(--error);
     opacity: 1 !important;
-    background: #fee2e2;
+    background: rgba(239, 68, 68, 0.15);
 }
 
 .delete-icon {
@@ -481,9 +481,9 @@ html, body {
     height: 12px;
 }
 
-/* Logs Flat Monospace View */
+/* Logs Monospace View */
 .logs-container {
-    background: #f8fafc;
+    background: #020617;
     font-family: var(--font-mono);
     padding: 1rem;
     border-top: none;
@@ -501,7 +501,7 @@ html, body {
 }
 
 .log-row:hover {
-    background: #f1f5f9;
+    background: rgba(255, 255, 255, 0.03);
 }
 
 .log-time {
@@ -520,13 +520,13 @@ html, body {
     padding: 0.02rem 0.2rem;
 }
 
-.log-row.level-INFO .log-level { color: #0f766e; background: #ccfbf1; }
-.log-row.level-DEBUG .log-level { color: #6d28d9; background: #f3e8ff; }
-.log-row.level-WARNING .log-level { color: #b45309; background: #fef3c7; }
-.log-row.level-ERROR .log-level { color: #b91c1c; background: #fee2e2; }
+.log-row.level-INFO .log-level { color: #34d399; background: rgba(52, 211, 153, 0.1); }
+.log-row.level-DEBUG .log-level { color: #c084fc; background: rgba(192, 132, 252, 0.1); }
+.log-row.level-WARNING .log-level { color: #fbbf24; background: rgba(251, 191, 36, 0.1); }
+.log-row.level-ERROR .log-level { color: #f87171; background: rgba(248, 113, 113, 0.1); }
 
 .log-message {
-    color: #334155;
+    color: #e2e8f0;
     word-break: break-all;
 }
 
