@@ -26,6 +26,12 @@ def get_saved_wifi(request: Request):
 def save_wifi(request: Request, credential: WifiSave):
     db = request.app.state.db
     db.save_wifi_network(credential.ssid, credential.password, credential.priority)
+    
+    # Trigger connection check in background immediately so we don't block the HTTP response
+    import threading
+    network_mgr = request.app.state.network
+    threading.Thread(target=network_mgr.check_and_connect, kwargs={"force": True}, daemon=True).start()
+    
     return {"ssid": credential.ssid, "status": "saved"}
 
 
