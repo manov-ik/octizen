@@ -139,23 +139,25 @@ class NetworkManager:
         active_ssid = self.get_active_ssid()
         return active_ssid is not None and active_ssid != HOTSPOT_SSID
 
-    def check_and_connect(self) -> bool:
+    def check_and_connect(self, force: bool = False) -> bool:
         """
-        Scans nearby signals and connects to the highest-priority saved network in range.
-        If connection fails or no networks match, starts AP (hotspot) mode.
+        Checks available networks and connects to the highest priority matching profile.
+        If force=False and we are already connected to client Wi-Fi, skips check to save SSH.
+        If force=True (button hold) or not connected, scans and loops through all matching networks.
         
         Returns:
-            True if connected as client, False if started AP hotspot.
+            True if connected to client Wi-Fi, False if fallback AP triggered.
         """
         logger.info("[Network] Initiating network configuration check...")
         
-        # Safety Check: If already online, don't interrupt active SSH sessions!
-        active_ssid = self.get_active_ssid()
-        if active_ssid is not None and active_ssid != HOTSPOT_SSID:
-            logger.info(f"[Network] Already connected to client Wi-Fi: {active_ssid}. Skipping configuration changes.")
-            self._led.on()
-            self._event_manager.emit("network.connected", {"ssid": active_ssid})
-            return True
+        # Safety Check: If already online, don't interrupt active SSH sessions unless forced!
+        if not force:
+            active_ssid = self.get_active_ssid()
+            if active_ssid is not None and active_ssid != HOTSPOT_SSID:
+                logger.info(f"[Network] Already connected to client Wi-Fi: {active_ssid}. Skipping boot config changes.")
+                self._led.on()
+                self._event_manager.emit("network.connected", {"ssid": active_ssid})
+                return True
 
         self._led.blink(on_time=0.2, off_time=0.2)  # fast blink = searching
 
@@ -186,35 +188,35 @@ class NetworkManager:
         # 2. Scan available airwaves
         visible_networks = {net["ssid"] for net in self.scan_networks()}
         
-        # 3. Match saved vs visible
-        # saved_networks is already sorted by priority DESC
-        matching_network = None
-        for saved in saved_networks:
-            if saved["ssid"] in visible_networks:
-                matching_network = saved
-                break
+        # 3. Match saved vs visible (returns a list of matched networks sorted by priority)
+        matching_networks = [saved for saved in saved_networks if saved["ssid"] in visible_networks]
 
-        if not matching_network:
+        if not matching_networks:
             logger.warning("[Network] None of the saved Wi-Fi networks are in range.")
             self._start_ap_mode()
             return False
 
-        # 4. Attempt connection
-        ssid = matching_network["ssid"]
-        password = matching_network["password"]
-        
-        logger.info(f"[Network] Attempting connection to: {ssid}...")
-        success = self._connect_to_wifi(ssid, password)
-        
-        if success:
-            logger.info(f"[Network] Successfully connected to client Wi-Fi: {ssid} 🎉")
-            self._led.on()  # steady ON = connected
-            self._event_manager.emit("network.connected", {"ssid": ssid})
-            return True
-        else:
-            logger.error(f"[Network] Connection failed to SSID: {ssid}")
+        # 4. Attempt connection in priority order (ASC)
+        # If the highest priority connection fails, try the next matches as fallback!
+        connected = False
+        for net in matching_networks:
+            ssid = net["ssid"]
+            password = net["password"]
+            
+            logger.info(f"[Network] Attempting connection to: {ssid}...")
+            if self._connect_to_wifi(ssid, password):
+                logger.info(f"[Network] Successfully connected to client Wi-Fi: {ssid} 🎉")
+                self._led.on()  # steady ON = connected
+                self._event_manager.emit("network.connected", {"ssid": ssid})
+                connected = True
+                break
+            else:
+                logger.error(f"[Network] Connection failed to SSID: {ssid}. Trying other visible matches...")
+
+        if not connected:
             self._start_ap_mode()
             return False
+        return True
 
     def _connect_to_wifi(self, ssid: str, password: str) -> bool:
         """Runs the connection command."""

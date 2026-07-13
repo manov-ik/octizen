@@ -40,7 +40,7 @@ class Octizen:
         self.network = NetworkManager(self.db, self.event_manager, self.led)
 
         # ── 5. Event Hook: Button Hold Triggers Network Check ──────────
-        self.event_manager.on("button.hold", lambda name, data: self.network.check_and_connect())
+        self.event_manager.on("button.hold", lambda name, data: self.network.check_and_connect(force=True))
 
         # ── 6. Button (non-blocking initialization) ───────────────────
         from devices.button import ButtonManager
