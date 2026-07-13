@@ -1,14 +1,12 @@
 """
 devices/button.py
 
-GPIO Button handler for Octizen.
-Pin: GPIO 17 (BCM) = Physical Pin 11
-
-Calls on_press callback on every debounced button press.
+DRY GPIO Button handler for Octizen.
+Handles any number of buttons via the BUTTONS config list.
+All presses route through EventManager — zero code duplication.
 
 Pin factory: lgpio (required on Pi Zero 2W / newer kernels).
-Install:  sudo apt install -y python3-lgpio
-          -- OR --
+Install:  sudo apt install -y liblgpio-dev
           pip install lgpio
 """
 
@@ -32,6 +30,7 @@ except ImportError:
         "  on newer Pi kernels. lgpio is required.\n"
         "\n"
         "  Fix:\n"
+        "    sudo apt install -y liblgpio-dev\n"
         "    source .venv/bin/activate\n"
         "    pip install lgpio\n"
         "\n"
@@ -39,31 +38,49 @@ except ImportError:
         "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
     )
 
-BUTTON_PIN = 17   # BCM numbering = Physical Pin 11
+# ── Button config ─────────────────────────────────────────────────────────────
+# Add new buttons here. Zero code changes elsewhere.
+BUTTONS = [
+    {"pin": 17, "name": "main", "bounce_time": 0.2},
+    # Future:
+    # {"pin": 27, "name": "wifi", "bounce_time": 0.3},
+]
 
 
 class ButtonManager:
-    def __init__(self, on_press=None):
+    """
+    Manages all GPIO buttons. Config-driven, DRY.
+    Adding a new button = add one dict to BUTTONS.
+    """
+
+    def __init__(self, event_manager):
         """
         Args:
-            on_press: optional callable(pin: int) called on every press
+            event_manager: core.event_manager.EventManager instance
         """
-        self.button = Button(
-            BUTTON_PIN,
-            pull_up=True,
-            bounce_time=0.2,
-        )
-        self._on_press = on_press
+        self._event_manager = event_manager
+        self._buttons = {}
+
+        for config in BUTTONS:
+            pin = config["pin"]
+            name = config["name"]
+            bounce = config["bounce_time"]
+
+            btn = Button(pin, pull_up=True, bounce_time=bounce)
+            btn.when_pressed = lambda p=pin, n=name: self._handle_press(p, n)
+            self._buttons[name] = btn
+
+            logger.info(f"[Button] Registered: {name} → GPIO {pin}")
 
     def start(self):
-        """Attach callback and block (runs forever via pause())."""
-        logger.info(f"[Button] Listening on GPIO {BUTTON_PIN} (Physical Pin 11)...")
-        self.button.when_pressed = self._handle_press
+        """Block forever, listening for button presses."""
+        names = ", ".join(self._buttons.keys())
+        logger.info(f"[Button] Listening on: {names}")
         pause()
 
-    def _handle_press(self):
-        logger.info(f"[Button] 🔘 Button pressed on pin {BUTTON_PIN}")
-        print(f"🔘 Button Pressed (GPIO {BUTTON_PIN})")
-
-        if self._on_press:
-            self._on_press(pin=BUTTON_PIN)
+    def _handle_press(self, pin: int, name: str):
+        """
+        Single handler for ALL buttons — never duplicated.
+        Routes through EventManager middleware.
+        """
+        self._event_manager.emit("button.pressed", {"pin": pin, "name": name})

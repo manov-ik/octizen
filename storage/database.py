@@ -1,30 +1,24 @@
 """
 storage/database.py
 
-Core Database class for Octizen.
-Handles SQLite connection lifecycle, schema creation, and migrations.
+SQLite database for Octizen.
+Single source of truth. Currently holds one table: logs.
 
-Usage:
-    db = Database()
-    db.init_db()          # Creates tables if they don't exist
-    conn = db.get_conn()  # Get raw connection for queries
-    db.close()            # Clean shutdown
+DB path: storage/octizen.db (auto-created on first run)
 """
 
 import sqlite3
-import os
+from datetime import datetime
 from pathlib import Path
 from core.logger import logger
 
 
-# Default path: project root / data / octizen.db
-DB_DIR = Path(__file__).resolve().parent.parent / "data"
-DB_PATH = DB_DIR / "octizen.db"
+DB_PATH = Path(__file__).resolve().parent / "octizen.db"
 
 
 class Database:
     """
-    Manages the SQLite database connection and schema for Octizen.
+    Manages the SQLite connection, schema, and log operations.
     """
 
     def __init__(self, db_path: str | Path = DB_PATH):
@@ -32,37 +26,31 @@ class Database:
         self._conn: sqlite3.Connection | None = None
 
     # ------------------------------------------------------------------
-    # Public API
+    # Lifecycle
     # ------------------------------------------------------------------
 
     def init_db(self) -> None:
-        """
-        Opens the database connection and ensures all tables exist.
-        Call this once at application startup.
-        """
-        self._ensure_data_dir()
+        """Open connection and create tables. Call once at startup."""
+        self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self._conn = sqlite3.connect(
             str(self.db_path),
-            check_same_thread=False,   # safe for single-threaded use
+            check_same_thread=False,
             detect_types=sqlite3.PARSE_DECLTYPES,
         )
-        self._conn.row_factory = sqlite3.Row   # dicts instead of tuples
-        self._conn.execute("PRAGMA journal_mode=WAL;")  # better concurrency
+        self._conn.row_factory = sqlite3.Row
+        self._conn.execute("PRAGMA journal_mode=WAL;")
         self._conn.execute("PRAGMA foreign_keys=ON;")
         self._create_tables()
-        self._seed_defaults()
         logger.info(f"[DB] Connected → {self.db_path}")
 
     def get_conn(self) -> sqlite3.Connection:
         """Returns the active connection. Raises if not initialised."""
         if self._conn is None:
-            raise RuntimeError(
-                "Database not initialised. Call init_db() first."
-            )
+            raise RuntimeError("Database not initialised. Call init_db() first.")
         return self._conn
 
     def close(self) -> None:
-        """Commits any pending writes and closes the connection."""
+        """Commit pending writes and close the connection."""
         if self._conn:
             self._conn.commit()
             self._conn.close()
@@ -75,80 +63,41 @@ class Database:
 
     def _create_tables(self) -> None:
         """Creates all tables if they do not already exist."""
-        sql = """
-        -- ── Events ──────────────────────────────────────────────────
-        CREATE TABLE IF NOT EXISTS events (
-            id          INTEGER PRIMARY KEY AUTOINCREMENT,
-            pin         INTEGER NOT NULL DEFAULT 0,
-            event_type  TEXT    NOT NULL DEFAULT '',
-            source      TEXT    NOT NULL DEFAULT '',
-            notes       TEXT             DEFAULT '',
-            timestamp   TEXT    NOT NULL DEFAULT (datetime('now'))
-        );
-
-        -- ── Logs ─────────────────────────────────────────────────────
-        CREATE TABLE IF NOT EXISTS logs (
-            id          INTEGER PRIMARY KEY AUTOINCREMENT,
-            level       TEXT    NOT NULL DEFAULT 'INFO',
-            message     TEXT    NOT NULL DEFAULT '',
-            source      TEXT             DEFAULT '',
-            timestamp   TEXT    NOT NULL DEFAULT (datetime('now'))
-        );
-
-        -- ── Settings ─────────────────────────────────────────────────
-        CREATE TABLE IF NOT EXISTS settings (
-            key         TEXT    PRIMARY KEY,
-            value       TEXT    NOT NULL DEFAULT '',
-            description TEXT             DEFAULT '',
-            updated_at  TEXT    NOT NULL DEFAULT (datetime('now'))
-        );
-
-        -- ── Notifications ─────────────────────────────────────────────
-        CREATE TABLE IF NOT EXISTS notifications (
-            id          INTEGER PRIMARY KEY AUTOINCREMENT,
-            title       TEXT    NOT NULL DEFAULT '',
-            body        TEXT             DEFAULT '',
-            channel     TEXT    NOT NULL DEFAULT 'system',
-            status      TEXT    NOT NULL DEFAULT 'pending',
-            timestamp   TEXT    NOT NULL DEFAULT (datetime('now'))
-        );
-        """
         conn = self.get_conn()
-        conn.executescript(sql)
+        conn.executescript("""
+            CREATE TABLE IF NOT EXISTS logs (
+                id         INTEGER PRIMARY KEY AUTOINCREMENT,
+                event      TEXT    NOT NULL,
+                created_at TEXT    NOT NULL DEFAULT (datetime('now'))
+            );
+        """)
         conn.commit()
-        logger.info("[DB] Tables verified / created.")
+        logger.info("[DB] Tables verified.")
 
     # ------------------------------------------------------------------
-    # Seed defaults
+    # Log operations
     # ------------------------------------------------------------------
 
-    def _seed_defaults(self) -> None:
+    def log_event(self, event: str) -> int:
         """
-        Inserts default settings rows on first run.
-        Uses INSERT OR IGNORE so it never overwrites existing values.
+        Insert a log row. Returns the new row id.
+        This is the ONLY write method — every event in the system
+        flows through here via EventManager.emit().
         """
-        defaults = [
-            ("app.name",    "Octizen",  "Application display name"),
-            ("app.version", "0.1.0",    "Current version"),
-            ("button.pin",  "17",       "GPIO pin for the main button (BCM)"),
-            ("button.bounce_time", "0.2", "Debounce time in seconds"),
-            ("log.level",   "INFO",     "Minimum log level to persist"),
-        ]
         conn = self.get_conn()
-        conn.executemany(
-            """
-            INSERT OR IGNORE INTO settings (key, value, description)
-            VALUES (?, ?, ?)
-            """,
-            defaults,
+        cur = conn.execute(
+            "INSERT INTO logs (event, created_at) VALUES (?, ?)",
+            (event, datetime.utcnow().isoformat()),
         )
         conn.commit()
-        logger.info("[DB] Default settings seeded.")
+        row_id = cur.lastrowid
+        logger.info(f"[DB] Logged: id={row_id} event={event}")
+        return row_id
 
-    # ------------------------------------------------------------------
-    # Internal helpers
-    # ------------------------------------------------------------------
-
-    def _ensure_data_dir(self) -> None:
-        """Creates the data directory if it does not exist."""
-        self.db_path.parent.mkdir(parents=True, exist_ok=True)
+    def get_logs(self, limit: int = 100) -> list[dict]:
+        """Fetch recent log entries, newest first."""
+        conn = self.get_conn()
+        rows = conn.execute(
+            "SELECT * FROM logs ORDER BY id DESC LIMIT ?", (limit,)
+        ).fetchall()
+        return [dict(r) for r in rows]

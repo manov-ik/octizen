@@ -24,3 +24,9 @@ venv/
 
 # Mypy
 .mypy_cache/
+
+# Octizen local data
+storage/octizen.db
+storage/octizen.db-wal
+storage/octizen.db-shm
+storage/files/
