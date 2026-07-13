@@ -4,6 +4,6 @@ storage/__init__.py
 Public API for the storage module.
 """
 
-from storage.database import Database
+from storage.database_manager import DatabaseManager
 
-__all__ = ["Database"]
+__all__ = ["DatabaseManager"]

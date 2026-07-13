@@ -14,7 +14,7 @@ import os
 # Add project root to path so imports work
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from storage.database import Database
+from storage.database_manager import DatabaseManager
 from core.queue_manager import QueueManager
 
 # Use an in-memory database for testing
@@ -41,7 +41,7 @@ def main():
     print("=" * 60)
 
     # ── Setup ─────────────────────────────────────────────────────
-    db = Database(db_path=TEST_DB_PATH)
+    db = DatabaseManager(db_path=TEST_DB_PATH)
     db.init_db()
     qm = QueueManager(db)
 
