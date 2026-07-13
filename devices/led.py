@@ -32,10 +32,11 @@ class LEDManager:
             self.led = None
 
     def on(self) -> None:
-        """Turn LED steady ON."""
+        """Turn LED steady ON (stops any active background blink thread first)."""
         if self.led:
             try:
-                self.led.on()
+                self.led.off()  # cancel any active blink threads
+                self.led.on()   # turn steady ON
             except Exception as e:
                 logger.error(f"[LED] Error turning on: {e}")
 
