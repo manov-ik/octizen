@@ -139,6 +139,19 @@ class NetworkManager:
 
         self._led.blink(on_time=0.2, off_time=0.2)  # fast blink = searching
 
+        # If the fallback hotspot is running, we MUST stop it first so the single Wi-Fi radio
+        # is free to scan for client Wi-Fi signals in the air.
+        if self._nmcli_available:
+            try:
+                active_ssid = self.get_active_ssid()
+                if active_ssid == HOTSPOT_SSID:
+                    logger.info("[Network] Disabling setup hotspot to scan for client networks...")
+                    subprocess.run(["nmcli", "connection", "down", HOTSPOT_SSID], capture_output=True, timeout=10)
+                    import time
+                    time.sleep(1.5)  # Let hardware settle
+            except Exception as e:
+                logger.error(f"[Network] Error turning down hotspot for scan: {e}")
+
         # 1. Fetch saved networks from DB
         saved_networks = self._db.get_wifi_networks()
         if not saved_networks:
