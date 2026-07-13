@@ -46,13 +46,13 @@ except ImportError:
 # ── Button config ─────────────────────────────────────────────────────────────
 # Add new buttons here. Zero code changes elsewhere.
 BUTTONS = [
-    {"pin": 17, "name": "main", "bounce_time": 0.2, "hold_time": 1.0},
+    {"pin": 17, "name": "main", "bounce_time": 0.05, "hold_time": 1.0},
     # Future:
     # {"pin": 27, "name": "wifi", "bounce_time": 0.3, "hold_time": 1.0},
 ]
 
 # Time window (seconds) to wait for additional clicks before resolving
-MULTI_CLICK_WINDOW = 0.4
+MULTI_CLICK_WINDOW = 0.5
 
 
 class ButtonManager:
