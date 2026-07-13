@@ -220,6 +220,11 @@ class NetworkManager:
 
     def _connect_to_wifi(self, ssid: str, password: str) -> bool:
         """Runs the connection command."""
+        # If we are already connected to this network, don't run nmcli (which returns error code for active connection)
+        if self.get_active_ssid() == ssid:
+            logger.info(f"[Network] Device is already connected to {ssid}. Skipping redundant connect command.")
+            return True
+
         if not self._nmcli_available:
             time.sleep(2)  # Mock delay
             return ssid != "Mock-Fail-WiFi"
