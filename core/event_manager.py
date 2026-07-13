@@ -58,8 +58,15 @@ class EventManager:
         # 1. Terminal
         logger.info(f"[Event] {event_name}  {data}")
 
+        # Format details into the event string so they are saved in SQLite
+        db_event = event_name
+        if data:
+            # e.g., "button.pressed: main (pin 17)"
+            details = ", ".join(f"{k}={v}" for k, v in data.items())
+            db_event = f"{event_name} ({details})"
+
         # 2. Persist
-        row_id = self._db.log_event(event_name)
+        row_id = self._db.log_event(db_event)
 
         # 3. Listeners
         for cb in self._listeners.get(event_name, []):
