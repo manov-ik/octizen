@@ -111,6 +111,26 @@ class NetworkManager:
         except Exception:
             return None
 
+    def get_active_wifi_connection(self) -> str | None:
+        """Get the active Wi-Fi connection profile name (e.g. 'Hotspot' or 'netplan-wlan0-H&M')."""
+        if not self._nmcli_available:
+            return None
+        try:
+            res = subprocess.run(
+                ["nmcli", "-t", "-f", "ACTIVE,NAME,TYPE", "connection", "show"],
+                capture_output=True,
+                text=True,
+                timeout=5
+            )
+            for line in res.stdout.strip().split("\n"):
+                if line.startswith("yes:"):
+                    parts = line.split(":")
+                    if len(parts) >= 3 and "wireless" in parts[2]:
+                        return parts[1].strip()
+            return None
+        except Exception:
+            return None
+
     def is_already_connected(self) -> bool:
         """
         Check if the Wi-Fi interface is actively connected to a client network.
@@ -145,10 +165,14 @@ class NetworkManager:
             try:
                 active_ssid = self.get_active_ssid()
                 if active_ssid == HOTSPOT_SSID:
-                    logger.info("[Network] Disabling setup hotspot to scan for client networks...")
-                    subprocess.run(["nmcli", "connection", "down", HOTSPOT_SSID], capture_output=True, timeout=10)
-                    import time
-                    time.sleep(1.5)  # Let hardware settle
+                    active_conn = self.get_active_wifi_connection()
+                    if active_conn:
+                        logger.info(f"[Network] Disabling active setup hotspot connection '{active_conn}' to scan for client networks...")
+                        subprocess.run(["nmcli", "connection", "down", active_conn], capture_output=True, timeout=10)
+                        # Also attempt to turn down HOTSPOT_SSID directly as fallback
+                        subprocess.run(["nmcli", "connection", "down", HOTSPOT_SSID], capture_output=True, timeout=10)
+                        import time
+                        time.sleep(1.5)  # Let hardware settle
             except Exception as e:
                 logger.error(f"[Network] Error turning down hotspot for scan: {e}")
 
@@ -215,30 +239,7 @@ class NetworkManager:
             return False
 
     def _start_ap_mode(self) -> None:
-        """Fallback to local Access Point hotspot server."""
-        logger.info(f"[Network] Starting fallback AP hotspot: {HOTSPOT_SSID}...")
-        self._led.blink(on_time=1.0, off_time=1.0)  # slow blink = AP mode active
-
-        if not self._nmcli_available:
-            logger.info("[Network] Mock AP Mode active.")
-            self._event_manager.emit("network.ap_started", {"ssid": HOTSPOT_SSID})
-            return
-
-        try:
-            # Turn up a hotspot interface
-            # nmcli handles hotspot profile creation & routing configuration automatically
-            subprocess.run(
-                [
-                    "nmcli", "device", "wifi", "hotspot",
-                    "ssid", HOTSPOT_SSID,
-                    "password", HOTSPOT_PASSWORD
-                ],
-                capture_output=True,
-                text=True,
-                timeout=15,
-            )
-            logger.info(f"[Network] Hotspot active at SSID: {HOTSPOT_SSID} (pass: {HOTSPOT_PASSWORD})")
-            self._event_manager.emit("network.ap_started", {"ssid": HOTSPOT_SSID})
-        except Exception as e:
-            logger.error(f"[Network] Failed to start AP Hotspot: {e}")
-            self._led.off()
+        """Fallback to local Access Point hotspot server (Bypassed in dev mode for SSH safety)."""
+        logger.info("[Network] Fallback AP hotspot mode is bypassed to prevent SSH disconnects.")
+        self._led.blink(on_time=0.5, off_time=0.5)  # normal blink = disconnected, no AP active
+        self._event_manager.emit("network.ap_started", {"ssid": "Bypassed (Dev Mode)"})
