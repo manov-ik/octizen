@@ -103,6 +103,14 @@ class DatabaseManager:
                 retry_count  INTEGER NOT NULL DEFAULT 0,
                 error        TEXT
             );
+
+            -- ── Wi-Fi Networks ───────────────────────────────────
+            CREATE TABLE IF NOT EXISTS wifi_networks (
+                ssid      TEXT PRIMARY KEY,
+                password  TEXT NOT NULL,
+                priority  INTEGER DEFAULT 0,
+                added_at  TEXT NOT NULL DEFAULT (datetime('now'))
+            );
         """)
         self._conn.commit()
         logger.info("[DB] Tables verified.")
@@ -313,6 +321,41 @@ class DatabaseManager:
         return self._conn.execute(
             "SELECT COUNT(*) FROM queue WHERE status = 'pending'"
         ).fetchone()[0]
+
+    # ==================================================================
+    # Wi-Fi Networks
+    # ==================================================================
+
+    def save_wifi_network(self, ssid: str, password: str, priority: int = 0) -> None:
+        """Insert or update a saved Wi-Fi network credential."""
+        self._conn.execute(
+            """
+            INSERT INTO wifi_networks (ssid, password, priority, added_at)
+            VALUES (?, ?, ?, ?)
+            ON CONFLICT(ssid) DO UPDATE SET
+                password = excluded.password,
+                priority = excluded.priority,
+                added_at = excluded.added_at
+            """,
+            (ssid, password, priority, self._now()),
+        )
+        self._conn.commit()
+        logger.info(f"[DB] Saved Wi-Fi: {ssid} (priority={priority})")
+
+    def get_wifi_networks(self) -> list[dict]:
+        """Fetch all saved Wi-Fi network credentials, highest priority first."""
+        rows = self._conn.execute(
+            "SELECT * FROM wifi_networks ORDER BY priority DESC, added_at DESC"
+        ).fetchall()
+        return [dict(r) for r in rows]
+
+    def delete_wifi_network(self, ssid: str) -> None:
+        """Delete a saved Wi-Fi network credential."""
+        self._conn.execute(
+            "DELETE FROM wifi_networks WHERE ssid = ?", (ssid,)
+        )
+        self._conn.commit()
+        logger.info(f"[DB] Deleted Wi-Fi: {ssid}")
 
     # ==================================================================
     # Internal

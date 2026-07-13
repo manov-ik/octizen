@@ -7,7 +7,7 @@ Exposes REST routers and launches uvicorn loop.
 
 import uvicorn
 from fastapi import FastAPI
-from api.routes import health, logs, notes, memories, queue
+from api.routes import health, logs, notes, memories, queue, wifi
 
 
 import os
@@ -21,6 +21,7 @@ def create_app(octizen_app) -> FastAPI:
     # Store shared references in app.state for DI in routes
     app.state.db = octizen_app.db
     app.state.queue = octizen_app.queue
+    app.state.network = octizen_app.network
     app.state.start_time = octizen_app.start_time
     app.state.config = octizen_app.config
 
@@ -39,6 +40,7 @@ def create_app(octizen_app) -> FastAPI:
     app.include_router(notes.router)
     app.include_router(memories.router)
     app.include_router(queue.router)
+    app.include_router(wifi.router)
 
     return app
 

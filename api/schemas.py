@@ -16,3 +16,9 @@ class MemoryCreate(BaseModel):
     content: str
     source: str = "api"
     tags: str = ""
+
+
+class WifiSave(BaseModel):
+    ssid: str
+    password: str
+    priority: int = 0

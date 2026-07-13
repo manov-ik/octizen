@@ -27,6 +27,10 @@
                     <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
                     Queue
                 </button>
+                <button class="nav-item" onclick="switchTab('wifi')">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.55a11 11 0 0114.08 0M1.42 9a16 16 0 0121.16 0M8.53 16.11a6 6 0 016.94 0M12 20h.01"/></svg>
+                    Wi-Fi Setup
+                </button>
             </nav>
         </aside>
 
@@ -128,6 +132,85 @@
                                         <tr><td colspan="5" class="state-placeholder">No tasks in queue.</td></tr>
                                     </tbody>
                                 </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Wi-Fi Tab -->
+                <section id="tab-wifi" class="tab-pane">
+                    <!-- Add Network -->
+                    <div class="card" style="margin-bottom: 1.5rem;">
+                        <div class="card-header">
+                            <h3>Connect to New Network</h3>
+                        </div>
+                        <div class="card-body">
+                            <form id="wifi-form" onsubmit="saveWifiCredential(event)" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; align-items: end;">
+                                <div>
+                                    <label style="display: block; font-size: 0.8rem; color: var(--text-light); font-weight: 600; text-transform: uppercase; margin-bottom: 0.4rem;">SSID</label>
+                                    <input type="text" id="wifi-ssid" placeholder="Network Name" required style="width: 100%; padding: 0.6rem; border: 1px solid var(--border-color); border-radius: 6px; background-color: var(--bg-page); color: var(--text-main); font-size: 0.95rem;">
+                                </div>
+                                <div>
+                                    <label style="display: block; font-size: 0.8rem; color: var(--text-light); font-weight: 600; text-transform: uppercase; margin-bottom: 0.4rem;">Password</label>
+                                    <input type="password" id="wifi-password" placeholder="Passphrase" style="width: 100%; padding: 0.6rem; border: 1px solid var(--border-color); border-radius: 6px; background-color: var(--bg-page); color: var(--text-main); font-size: 0.95rem;">
+                                </div>
+                                <div>
+                                    <label style="display: block; font-size: 0.8rem; color: var(--text-light); font-weight: 600; text-transform: uppercase; margin-bottom: 0.4rem;">Priority (optional)</label>
+                                    <input type="number" id="wifi-priority" value="0" min="0" style="width: 100%; padding: 0.6rem; border: 1px solid var(--border-color); border-radius: 6px; background-color: var(--bg-page); color: var(--text-main); font-size: 0.95rem;">
+                                </div>
+                                <div>
+                                    <button type="submit" style="width: 100%; padding: 0.6rem; background-color: var(--primary-blue); color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.95rem;">Save & Connect</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Available / Saved Networks -->
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem;">
+                        <!-- Available Signals -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>Nearby Signals</h3>
+                            </div>
+                            <div class="card-body" style="padding: 0;">
+                                <div class="table-wrapper">
+                                    <table class="data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>SSID</th>
+                                                <th>Signal</th>
+                                                <th>Security</th>
+                                                <th></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="scan-container">
+                                            <tr><td colspan="4" class="state-placeholder">Scanning airwaves...</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Saved Credentials -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>Saved Profiles</h3>
+                            </div>
+                            <div class="card-body" style="padding: 0;">
+                                <div class="table-wrapper">
+                                    <table class="data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>SSID</th>
+                                                <th>Priority</th>
+                                                <th></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="saved-container">
+                                            <tr><td colspan="3" class="state-placeholder">No saved Wi-Fi credentials.</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
                     </div>

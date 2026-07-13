@@ -1,8 +1,8 @@
-// Page state tracking
 const PAGE_TITLES = {
     'device': 'Device Status',
     'logs': 'Logs Check',
-    'queue': 'Task Queue'
+    'queue': 'Task Queue',
+    'wifi': 'Wi-Fi Setup'
 };
 
 // Switching Views (Tabs)
@@ -96,8 +96,100 @@ async function updateData() {
                     `).join('');
             }
         }
+
+        // ── 4. Wi-Fi View ────────────────────────────────────────────────────
+        if (document.getElementById('tab-wifi').classList.contains('active')) {
+            // Scanned airwave networks
+            const scanRes = await fetch('/wifi/scan');
+            if (scanRes.ok) {
+                const scan = await scanRes.json();
+                const container = document.getElementById('scan-container');
+                container.innerHTML = scan.length === 0
+                    ? '<tr><td colspan="4" class="state-placeholder">No Wi-Fi signals found.</td></tr>'
+                    : scan.map(n => `
+                        <tr style="cursor: pointer;" onclick="selectSsid('${n.ssid}')">
+                            <td style="font-weight: 500;">${n.ssid}</td>
+                            <td>${n.signal}%</td>
+                            <td style="color: var(--text-light);">${n.security || 'Open'}</td>
+                            <td style="text-align: right;"><span class="badge badge-green" style="font-size: 0.75rem;">Select</span></td>
+                        </tr>
+                    `).join('');
+            }
+
+            // Saved network configurations
+            const savedRes = await fetch('/wifi/saved');
+            if (savedRes.ok) {
+                const saved = await savedRes.json();
+                const container = document.getElementById('saved-container');
+                container.innerHTML = saved.length === 0
+                    ? '<tr><td colspan="3" class="state-placeholder">No saved credentials.</td></tr>'
+                    : saved.map(s => `
+                        <tr>
+                            <td style="font-weight: 500;">${s.ssid}</td>
+                            <td>${s.priority}</td>
+                            <td style="text-align: right;">
+                                <button onclick="deleteWifiCredential('${s.ssid}')" style="background: none; border: none; color: var(--red-text); font-weight: 600; cursor: pointer; font-size: 0.85rem;">Delete</button>
+                            </td>
+                        </tr>
+                    `).join('');
+            }
+        }
     } catch (error) {
         console.error('Error fetching dashboard updates:', error);
+    }
+}
+
+// Populate SSID input field when a scanned row is clicked
+function selectSsid(ssid) {
+    document.getElementById('wifi-ssid').value = ssid;
+    document.getElementById('wifi-password').focus();
+}
+
+// POST new credentials to the API
+async function saveWifiCredential(event) {
+    event.preventDefault();
+    const ssid = document.getElementById('wifi-ssid').value;
+    const password = document.getElementById('wifi-password').value;
+    const priority = parseInt(document.getElementById('wifi-priority').value) || 0;
+
+    try {
+        const res = await fetch('/wifi/saved', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ssid, password, priority })
+        });
+        if (res.ok) {
+            // Reset form
+            document.getElementById('wifi-ssid').value = '';
+            document.getElementById('wifi-password').value = '';
+            document.getElementById('wifi-priority').value = '0';
+            alert(`Wi-Fi credentials saved for ${ssid}. Connection check initiated!`);
+            updateData();
+        } else {
+            alert('Failed to save Wi-Fi configuration.');
+        }
+    } catch (err) {
+        console.error('Error saving Wi-Fi:', err);
+    }
+}
+
+// DELETE credentials from database
+async function deleteWifiCredential(ssid) {
+    if (!confirm(`Are you sure you want to delete saved credentials for ${ssid}?`)) {
+        return;
+    }
+
+    try {
+        const res = await fetch(`/wifi/saved/${encodeURIComponent(ssid)}`, {
+            method: 'DELETE'
+        });
+        if (res.ok) {
+            updateData();
+        } else {
+            alert('Failed to delete Wi-Fi network.');
+        }
+    } catch (err) {
+        console.error('Error deleting Wi-Fi:', err);
     }
 }
 

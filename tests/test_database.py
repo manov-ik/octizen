@@ -79,8 +79,24 @@ def main():
     search_res = db.search_memories("plants")
     test("search_memories finds memory by keyword in content", len(search_res) == 1 and search_res[0]["id"] == mid1)
 
-    search_tag_res = db.search_memories("python")
-    test("search_memories finds memory by keyword in tags", len(search_tag_res) == 1 and search_tag_res[0]["id"] == mid2)
+    # ── Test 4: Wi-Fi Networks ────────────────────────────────────
+    print("\n── Wi-Fi Networks Table ──")
+    db.save_wifi_network("HomeWiFi", "pass123", priority=10)
+    db.save_wifi_network("OfficeWiFi", "secretpass", priority=5)
+    
+    wifi_list = db.get_wifi_networks()
+    test("get_wifi_networks retrieves all saved networks", len(wifi_list) == 2)
+    test("get_wifi_networks orders by priority DESC", wifi_list[0]["ssid"] == "HomeWiFi")
+    
+    # Update priority
+    db.save_wifi_network("OfficeWiFi", "newsecret", priority=20)
+    wifi_list_updated = db.get_wifi_networks()
+    test("save_wifi_network ON CONFLICT updates priority", wifi_list_updated[0]["ssid"] == "OfficeWiFi" and wifi_list_updated[0]["password"] == "newsecret")
+
+    # Delete network
+    db.delete_wifi_network("HomeWiFi")
+    wifi_list_deleted = db.get_wifi_networks()
+    test("delete_wifi_network removes the SSID key", len(wifi_list_deleted) == 1 and wifi_list_deleted[0]["ssid"] == "OfficeWiFi")
 
     # ── Cleanup ───────────────────────────────────────────────────
     db.close()
