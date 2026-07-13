@@ -159,7 +159,7 @@ class NetworkManager:
                 self._event_manager.emit("network.connected", {"ssid": active_ssid})
                 return True
 
-        self._led.blink(on_time=0.2, off_time=0.2)  # fast blink = searching
+        self._led.blink(on_time=0.5, off_time=0.5)  # blink = disconnected / searching
 
         # If the fallback hotspot is running, we MUST stop it first so the single Wi-Fi radio
         # is free to scan for client Wi-Fi signals in the air.
