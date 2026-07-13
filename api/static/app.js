@@ -47,12 +47,7 @@ async function updateData() {
                 connBadge.style.backgroundColor = 'var(--red-bg)';
                 connBadge.style.color = 'var(--red-text)';
             }
-        }
-
-        const indexRes = await fetch('/');
-        if (indexRes.ok) {
-            const index = await indexRes.json();
-            document.getElementById('device-version').textContent = index.version || '0.1.0';
+            document.getElementById('device-version').textContent = health.version || '0.1.0';
         }
 
         // ── 2. Logs View ─────────────────────────────────────────────────────

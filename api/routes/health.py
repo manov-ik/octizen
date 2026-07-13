@@ -28,4 +28,5 @@ def get_health(request: Request):
         "database": db_status,
         "queue": "running",
         "uptime": f"{uptime_sec:.1f}s",
+        "version": request.app.state.config.VERSION,
     }
