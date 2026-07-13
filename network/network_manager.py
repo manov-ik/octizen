@@ -225,8 +225,8 @@ class NetworkManager:
             return ssid != "Mock-Fail-WiFi"
 
         try:
-            # Disconnect any active hotspot first
-            subprocess.run(["nmcli", "connection", "down", HOTSPOT_SSID], capture_output=True)
+            # Disconnect any active hotspot first using connection down on Hotspot
+            subprocess.run(["nmcli", "connection", "down", "Hotspot"], capture_output=True)
             
             # Connect to client network
             res = subprocess.run(
@@ -235,6 +235,8 @@ class NetworkManager:
                 text=True,
                 timeout=20,
             )
+            if res.returncode != 0:
+                logger.error(f"[Network] nmcli failed to connect to {ssid}. Exit code: {res.returncode}\nstdout: {res.stdout.strip()}\nstderr: {res.stderr.strip()}")
             return res.returncode == 0
         except Exception as e:
             logger.error(f"[Network] Client connection execution failed: {e}")
