@@ -101,10 +101,9 @@ class ButtonManager:
             logger.info(f"[Button] Registered: {name} → GPIO {pin} (hold={hold}s)")
 
     def start(self):
-        """Block forever, listening for button events."""
+        """Start listening for button events (non-blocking)."""
         names = ", ".join(self._buttons.keys())
-        logger.info(f"[Button] Listening on: {names}")
-        pause()
+        logger.info(f"[Button] Setup complete. Active listeners: {names}")
 
     # ------------------------------------------------------------------
     # Callbacks — one set for ALL buttons (DRY)
