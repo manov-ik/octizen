@@ -91,26 +91,33 @@ class NetworkManager:
             logger.error(f"[Network] Scan failed: {e}")
             return []
 
-    def is_already_connected(self) -> bool:
-        """Check if the Wi-Fi interface is already actively connected to a network."""
+    def get_active_ssid(self) -> str | None:
+        """Get the active Wi-Fi SSID connected to the device, or None."""
         if not self._nmcli_available:
-            return False
+            return None
         try:
-            # Query status of wifi devices: type,state
-            result = subprocess.run(
-                ["nmcli", "-t", "-f", "TYPE,STATE", "device"],
+            res = subprocess.run(
+                ["nmcli", "-t", "-f", "ACTIVE,SSID", "device", "wifi"],
                 capture_output=True,
                 text=True,
                 timeout=5
             )
-            for line in result.stdout.strip().split("\n"):
-                if ":" in line:
-                    dtype, state = line.split(":", 1)
-                    if dtype.strip() == "wifi" and state.strip() == "connected":
-                        return True
-            return False
+            for line in res.stdout.strip().split("\n"):
+                if line.startswith("yes:"):
+                    ssid = line.split(":", 1)[1].strip()
+                    if ssid:
+                        return ssid
+            return None
         except Exception:
-            return False
+            return None
+
+    def is_already_connected(self) -> bool:
+        """
+        Check if the Wi-Fi interface is actively connected to a client network.
+        Returns False if not connected or if connected to our own setup hotspot.
+        """
+        active_ssid = self.get_active_ssid()
+        return active_ssid is not None and active_ssid != HOTSPOT_SSID
 
     def check_and_connect(self) -> bool:
         """
@@ -123,26 +130,11 @@ class NetworkManager:
         logger.info("[Network] Initiating network configuration check...")
         
         # Safety Check: If already online, don't interrupt active SSH sessions!
-        if self.is_already_connected():
-            logger.info("[Network] Device is already connected to Wi-Fi. Skipping configuration changes.")
+        active_ssid = self.get_active_ssid()
+        if active_ssid is not None and active_ssid != HOTSPOT_SSID:
+            logger.info(f"[Network] Already connected to client Wi-Fi: {active_ssid}. Skipping configuration changes.")
             self._led.on()
-            
-            # Extract current SSID if possible for log
-            current_ssid = "active-wifi"
-            if self._nmcli_available:
-                try:
-                    res = subprocess.run(
-                        ["nmcli", "-t", "-f", "ACTIVE,SSID", "device", "wifi"],
-                        capture_output=True, text=True, timeout=5
-                    )
-                    for line in res.stdout.strip().split("\n"):
-                        if line.startswith("yes:"):
-                            current_ssid = line.split(":", 1)[1]
-                            break
-                except Exception:
-                    pass
-                    
-            self._event_manager.emit("network.connected", {"ssid": current_ssid})
+            self._event_manager.emit("network.connected", {"ssid": active_ssid})
             return True
 
         self._led.blink(on_time=0.2, off_time=0.2)  # fast blink = searching

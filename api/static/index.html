@@ -152,14 +152,17 @@
                                 </div>
                                 <div>
                                     <label style="display: block; font-size: 0.8rem; color: var(--text-light); font-weight: 600; text-transform: uppercase; margin-bottom: 0.4rem;">Password</label>
-                                    <input type="password" id="wifi-password" placeholder="Passphrase" style="width: 100%; padding: 0.6rem; border: 1px solid var(--border-color); border-radius: 6px; background-color: var(--bg-page); color: var(--text-main); font-size: 0.95rem;">
+                                    <input type="password" id="wifi-password" placeholder="Passphrase" style="width: 100%; padding: 0.6rem; border: 1px solid var(--border-color); border-radius: 6px; background-color: var(--bg-page); color: var(--text-main); font-size: 0.95rem; margin-bottom: 0.4rem;">
+                                    <label style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.8rem; color: var(--text-muted); cursor: pointer; user-select: none;">
+                                        <input type="checkbox" onclick="togglePasswordVisibility()" style="cursor: pointer;"> Show Password
+                                    </label>
                                 </div>
                                 <div>
-                                    <label style="display: block; font-size: 0.8rem; color: var(--text-light); font-weight: 600; text-transform: uppercase; margin-bottom: 0.4rem;">Priority (optional)</label>
+                                    <label style="display: block; font-size: 0.8rem; color: var(--text-light); font-weight: 600; text-transform: uppercase; margin-bottom: 0.4rem;">Priority (0 is highest)</label>
                                     <input type="number" id="wifi-priority" value="0" min="0" style="width: 100%; padding: 0.6rem; border: 1px solid var(--border-color); border-radius: 6px; background-color: var(--bg-page); color: var(--text-main); font-size: 0.95rem;">
                                 </div>
                                 <div>
-                                    <button type="submit" style="width: 100%; padding: 0.6rem; background-color: var(--primary-blue); color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.95rem;">Save & Connect</button>
+                                    <button type="submit" style="width: 100%; padding: 0.6rem; background-color: var(--primary-blue); color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.95rem; margin-bottom: 1.25rem;">Save & Connect</button>
                                 </div>
                             </form>
                         </div>

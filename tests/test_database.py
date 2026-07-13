@@ -86,12 +86,12 @@ def main():
     
     wifi_list = db.get_wifi_networks()
     test("get_wifi_networks retrieves all saved networks", len(wifi_list) == 2)
-    test("get_wifi_networks orders by priority DESC", wifi_list[0]["ssid"] == "HomeWiFi")
+    test("get_wifi_networks orders by priority ASC (lowest number first)", wifi_list[0]["ssid"] == "OfficeWiFi")
     
-    # Update priority
+    # Update priority of OfficeWiFi from 5 to 20 (making it lower priority than HomeWiFi at 10)
     db.save_wifi_network("OfficeWiFi", "newsecret", priority=20)
     wifi_list_updated = db.get_wifi_networks()
-    test("save_wifi_network ON CONFLICT updates priority", wifi_list_updated[0]["ssid"] == "OfficeWiFi" and wifi_list_updated[0]["password"] == "newsecret")
+    test("save_wifi_network ON CONFLICT updates priority", wifi_list_updated[0]["ssid"] == "HomeWiFi" and wifi_list_updated[1]["ssid"] == "OfficeWiFi" and wifi_list_updated[1]["password"] == "newsecret")
 
     # Delete network
     db.delete_wifi_network("HomeWiFi")

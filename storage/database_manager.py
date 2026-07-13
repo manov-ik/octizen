@@ -343,9 +343,9 @@ class DatabaseManager:
         logger.info(f"[DB] Saved Wi-Fi: {ssid} (priority={priority})")
 
     def get_wifi_networks(self) -> list[dict]:
-        """Fetch all saved Wi-Fi network credentials, highest priority first."""
+        """Fetch all saved Wi-Fi network credentials, highest priority (lowest number, starting at 0) first."""
         rows = self._conn.execute(
-            "SELECT * FROM wifi_networks ORDER BY priority DESC, added_at DESC"
+            "SELECT * FROM wifi_networks ORDER BY priority ASC, added_at DESC"
         ).fetchall()
         return [dict(r) for r in rows]
 

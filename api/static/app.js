@@ -193,6 +193,16 @@ async function deleteWifiCredential(ssid) {
     }
 }
 
+// Toggle password field visibility
+function togglePasswordVisibility() {
+    const passwordField = document.getElementById('wifi-password');
+    if (passwordField.type === 'password') {
+        passwordField.type = 'text';
+    } else {
+        passwordField.type = 'password';
+    }
+}
+
 // Format SQLite ISO strings for neat rendering
 function formatTime(isoString) {
     try {
