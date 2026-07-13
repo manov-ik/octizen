@@ -2,7 +2,7 @@
 storage/database.py
 
 SQLite database for Octizen.
-Single source of truth. Currently holds one table: logs.
+Single source of truth. Tables: logs, queue.
 
 DB path: storage/octizen.db (auto-created on first run)
 """
@@ -69,6 +69,19 @@ class Database:
                 id         INTEGER PRIMARY KEY AUTOINCREMENT,
                 event      TEXT    NOT NULL,
                 created_at TEXT    NOT NULL DEFAULT (datetime('now'))
+            );
+
+            CREATE TABLE IF NOT EXISTS queue (
+                id           INTEGER PRIMARY KEY AUTOINCREMENT,
+                task_type    TEXT    NOT NULL,
+                payload      TEXT             DEFAULT '',
+                status       TEXT    NOT NULL DEFAULT 'pending',
+                priority     INTEGER NOT NULL DEFAULT 0,
+                created_at   TEXT    NOT NULL DEFAULT (datetime('now')),
+                started_at   TEXT,
+                completed_at TEXT,
+                retry_count  INTEGER NOT NULL DEFAULT 0,
+                error        TEXT
             );
         """)
         conn.commit()
