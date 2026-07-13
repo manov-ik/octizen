@@ -13,3 +13,9 @@ router = APIRouter(prefix="/queue", tags=["Queue"])
 def read_pending_queue(request: Request, limit: int = 100):
     queue = request.app.state.queue
     return queue.get_by_status("pending", limit=limit)
+
+
+@router.get("/stats")
+def get_queue_stats(request: Request):
+    queue = request.app.state.queue
+    return queue.count_by_status()

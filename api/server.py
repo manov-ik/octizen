@@ -10,6 +10,10 @@ from fastapi import FastAPI
 from api.routes import health, logs, notes, memories, queue
 
 
+import os
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+
 def create_app(octizen_app) -> FastAPI:
     """Builds FastAPI application with state context dependency injection."""
     app = FastAPI(title="Octizen Local API", version="0.1.0")
@@ -20,9 +24,14 @@ def create_app(octizen_app) -> FastAPI:
     app.state.start_time = octizen_app.start_time
     app.state.config = octizen_app.config
 
+    # Mount static assets
+    static_dir = os.path.join(os.path.dirname(__file__), "static")
+    os.makedirs(static_dir, exist_ok=True)
+    app.mount("/static", StaticFiles(directory=static_dir), name="static")
+
     @app.get("/")
     def index():
-        return {"status": "running", "version": octizen_app.config.VERSION}
+        return FileResponse(os.path.join(static_dir, "index.html"))
 
     # Register routers
     app.include_router(health.router)
